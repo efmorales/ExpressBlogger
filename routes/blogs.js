@@ -1,5 +1,32 @@
+// Create a new file /validation/blogs.js. In /validation/blogs. js: OK
+// Create a basic validator function for blogData and add that function to the module.exports
+// In /routes/blogs.js:
+// Import (require) the blogData validator function into /routes/blogs.js
+// Create one POST route /blogs/create-one to create a new blog post
+// Note: Do not forget to generated createdAt and lastModified in the new blog post
+
+// Create one PUT route /blogs/update-one/:blog Title to update a blog post
+// Both of the above routes should run validations on the incoming blog post body data BEFORE either creating a new blog post or updating a blog post. If the blog data is invalid, then a message should be sent in the http response indicating which validation failed and why
+// Build out the blogData validator function to check for the following conditions
+// Title, text and author are required fields and they should be strings
+// Title and author should be no longer than 40 characters in length (letters + whitespace)
+
+// o Stretch Goal:
+
+// If category is defined and has a length greater than 0:
+// There can be no more than 10 entries for category
+// All the entries must be strings
+// All categories must be in the following list of strings:
+// "Lorem"
+// "ipsum"
+// "dolor"
+// "sit"
+// "amet"
+
 const express = require('express');
 const router = express.Router();
+
+const { validateBlogData } = require("../validation/blogs");
 
 const sampleBlogs = [
     {
@@ -44,7 +71,62 @@ const sampleBlogs = [
     },
 ];
 
-/* GET blogs listing. */
+// POST blog
+
+
+router.post("/create-one", (req, res) => {
+
+    //try block, for validation code
+    try {
+  
+      // anticipate fields of our post request /create-one
+      // parse out request data to local variables
+      const title = req.body.title;
+      const text = req.body.text;
+      const author = req.body.author;
+      const category = req.body.category;
+  
+      //create blogData object fields
+      const blogData = {
+        title,
+        text,
+        author,
+        category,
+        createdAt: new Date(),
+        lastModified: new Date(),
+      };
+  
+      //pass blog data object to our validate function
+      const blogDataCheck = validateBlogData(blogData);
+  
+      if (blogDataCheck.isValid === false) {
+              throw Error(blogDataCheck.message)
+        // res.json({
+        //   success: false,
+        //   message: blogDataCheck.message,
+        // });
+        // return;
+      }
+  
+      sampleBlogs.push(blogData);
+  
+      console.log("blogList ", sampleBlogs);
+  
+      res.json({
+        success: true,
+      });
+    } catch (e) {
+          // In the catch block, we always want to do 2 things: console.log the error and respond with an error object
+      console.log(e);
+      res.json({
+              success: false,
+              error: String(e)
+          });
+    }
+  });
+
+  /* GET blogs listing. */
+
 router.get('/', function (req, res, next) {
     res.send('blogs page');
 });
@@ -69,6 +151,65 @@ router.get("/single/:titleToGet", ((req, res) => {
     })
 }))
 
+// PUT = UPDATE
+
+router.put("/update-one/:blogToUpdate", ((req, res) => {
+
+    const blogToFind = req.params.blogToUpdate;
+
+    const originalBlog = sampleBlogs.find((blog) => {
+        return blog.title === blogToFind;
+    })
+
+    const originalBlogIndex = sampleBlogs.findIndex((blog) => {
+        return blog.title === blogToFind;
+    })
+
+    if (!originalBlog) {
+        res.json({
+            success: false,
+            message: "Could not find blog in the list"
+        })
+        return
+    }
+
+    const updatedBlog = {}
+
+    if (req.body.title !== undefined) {
+        updatedBlog.title = req.body.title
+    } else {
+        updatedBlog.title = originalBlog.title
+    }
+
+    if (req.body.text !== undefined) {
+        updatedBlog.text = req.body.text
+    } else {
+        updatedBlog.text = originalBlog.text
+    }
+
+    if (req.body.author !== undefined) {
+        updatedBlog.author = req.body.author
+    } else {
+        updatedBlog.author = originalBlog.author
+    }
+
+    if (req.body.category !== undefined) {
+        updatedBlog.category = req.body.category
+    } else {
+        updatedBlog.category = originalBlog.category
+    }
+
+    updatedBlog.createdAt = new Date();
+    updatedBlog.lastModified = new Date();
+
+    sampleBlogs[originalBlogIndex] = updatedBlog
+
+    res.json({
+        success: true,
+    })
+
+}))
+
 router.delete("/delete/:titleToDelete", ((req, res) => {
 
     const blogToDelete = req.params.titleToDelete;
@@ -83,9 +224,5 @@ router.delete("/delete/:titleToDelete", ((req, res) => {
     })
 }))
 
-
-// GET /blogs/single/:blog TitleToGet that will send a single blog from the sample blogs in the HTTP response based upon the blog title passed into the url
-// Create one DELETE route with a single route param blog TitleToDelete
-// DELETE /blogs/single/blog TitleToDelete that will delete a single blog in the sample blogs based upon the blog title passed into the
 
 module.exports = router;
