@@ -1,3 +1,5 @@
+const { v4: uuidv4 } = require("uuid");
+uuidv4();
 const express = require('express');
 const router = express.Router();
 
@@ -37,6 +39,7 @@ router.post("/create-one", async (req, res) => {
 
         // anticipate fields of our post request /create-one
         // parse out request data to local variables
+        const id = uuidv4();
         const title = req.body.title;
         const text = req.body.text;
         const author = req.body.author;
@@ -44,6 +47,7 @@ router.post("/create-one", async (req, res) => {
 
         //create blogData object fields
         const blogData = {
+            id,
             title,
             text,
             author,
