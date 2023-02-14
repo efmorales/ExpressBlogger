@@ -403,7 +403,8 @@ router.delete("/delete-multi", async (req, res) => {
         })
 
         res.json({
-            success: true
+            success: true,
+            deleteResponse
         }).status(200)
     }
 
