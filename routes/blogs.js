@@ -125,16 +125,16 @@ router.get("/get-one", async (req, res) => {
 
 // get one blog by title ("/single/:titleToGet")
 
-router.get("/get-one/:titleToGet", async (req, res) => {
+router.get("/get-one/:idToGet", async (req, res) => {
 
     try {
 
-        const blogToFind = req.params.titleToGet;
+        const blogToFind = req.params.idToGet;
 
         const foundBlog = await db()
         .collection('sample_blogs')
         .findOne({
-            title: blogToFind
+            id: blogToFind
         })
 
         if (!foundBlog) {
